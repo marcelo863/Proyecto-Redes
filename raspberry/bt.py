@@ -10,9 +10,34 @@ os.system("sudo rfkill unblock bluetooth")
 import pygatt
 from binascii import hexlify
 import time
+# pip install mysql-connector-python
+# import mysql.connector
 
 adapter = pygatt.GATTToolBackend()
 #adapter = pygatt.backends.BGAPIBackend()
+
+"""
+# manejar ctrl + C
+def handle_break():
+    
+    conn.close()
+
+def connectDB():
+    host_name = "localhost (?)"
+    conn = connector.connect("redes", "123", host_name, "redesDB")
+    return conn
+
+def insertDB(conn, data):
+    conn.execute('''
+          INSERT INTO registro (hora, reconocimiento, prob_reconocimiento)
+            VALUES
+            (1,'Computer'),
+            (2,'Printer'),
+          ''', [detect_time, detect, detect_prob])
+
+    # imprimir resultado de query
+    print(conn.fetchall())
+"""
 
 def handle_data(handle, value):
     """
@@ -20,9 +45,21 @@ def handle_data(handle, value):
     value -- bytearray, the data returned in the notification
     """
     print("Received data: %s" % hexlify(value))
+    
     # trabajar con value :)
 
+    # enviar raw value o hexlify?
+    # insertDB(conn, hexlify(value))
+
 try:
+    """
+    # conectar a mysql en docker container
+    conn = connectDB()
+    if not conn.is_connected():
+        print("Error en conexión de base de datos")
+    """
+
+    # adaptador bluetooth
     adapter.start()
 
     # al parecer scan no funciona por requerir permisos especiales o algo así.

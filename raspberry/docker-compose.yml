@@ -1,0 +1,24 @@
+version: '3.4'
+services:
+  db:
+    image: mysql:8.0.29
+
+    command: --init-file /home/Proyecto_Redes/init.sql
+    volumes:
+      - /home/redes/Proyecto_Redes:/home/Proyecto_Redes
+      - /home/redes/Proyecto_Redes/init.sql:/home/Proyecto_Redes/init.sql
+      - mysqld:/var/run/mysqld
+      - db:/var/lib/mysql
+
+    environment:
+      MYSQL_ROOT_PASSWORD: 123
+      MYSQL_DATABASE: redesDB
+      MYSQL_USER: redes
+      MYSQL_PASSWORD: 123
+
+    # networks:
+    #   test:
+    #     ipv4_address: 172.20.0.2
+
+    expose:
+      - "3306"
