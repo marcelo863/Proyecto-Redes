@@ -57,10 +57,12 @@ class BLEPerson:
         elif event == _IRQ_GATTS_INDICATE_DONE:
             conn_handle, value_handle, status = data
 
-    def set_person(self, data, notify=False, indicate=False):
+    def set_person(self, data, prob, time, notify=False, indicate=False):
         # Data is sint16 in degrees Celsius with a resolution of 0.01 degrees Celsius.
         # Write the local value, ready for a central to read.
         self._ble.gatts_write(self._handle, struct.pack("<h", data))
+        self._ble.gatts_write(self._handle, struct.pack("<h", prob))
+        self._ble.gatts_write(self._handle, struct.pack("<s", time))
         if notify or indicate:
             for conn_handle in self._connections:
                 if notify:
@@ -117,12 +119,14 @@ def main():
 
             # si es persona o no
             max_label = labels[obj.output().index(max(obj.output()))]
-
+            
+            tiempo = time.localtime().strftime("%d %H %M %S")
+            
             if max_label == "person":
-                person.set_person(1, notify=True, indicate=False)
+                person.set_person(1, obj.output()[1], tiempo, notify=True, indicate=False)
                 print("Persona detectada!")
             else:
-                person.set_person(0, notify=False, indicate=False)
+                person.set_person(0, obj.output()[0], tiempo, notify=False, indicate=False)
 
             img.draw_rectangle(obj.rect())
             img.draw_string(obj.x()+3, obj.y()-1, max_label, mono_space = False)
