@@ -1,49 +1,15 @@
 #!/usr/bin/python3
+# fuente: https://github.com/peplin/pygatt
 
-import pydbus
 import os
 
 # Encender bluetooth
 
-os.system("rfkill unblock bluetooth")
-
-BLUEZ_SERVICE='org.bluez'
-ADAPTER_PATH='/org/bluez/hci0'
-
-#bus = pydbus.SystemBus()
-#adapter = bus.get(BLUEZ_SERVICE, ADAPTER_PATH)
-
-#print("Estado adaptador:", adapter.Powered)
-#if not adapter.Powered:
-#	print("Encendiendo adaptador")
-#	adapter.Powered = True
-
-
-# Escanear dispositivos
-
-"""
-import bluetooth
-
-def scan():
-
-    print("Scanning for bluetooth devices:")
-    devices = bluetooth.discover_devices(lookup_names = True, lookup_class = True)
-    number_of_devices = len(devices)
-    print(number_of_devices,"devices found")
-    for addr, name, device_class in devices:
-        print("\n")
-        print("Device:")
-        print("Device Name: %s" % (name))
-        print("Device MAC Address: %s" % (addr))
-        print("Device Class: %s" % (device_class))
-        print("\n")
-    return
-"""
-
-#scan()
+os.system("sudo rfkill unblock bluetooth")
 
 import pygatt
 from binascii import hexlify
+import time
 
 adapter = pygatt.GATTToolBackend()
 #adapter = pygatt.backends.BGAPIBackend()
@@ -54,13 +20,27 @@ def handle_data(handle, value):
     value -- bytearray, the data returned in the notification
     """
     print("Received data: %s" % hexlify(value))
+    # trabajar con value :)
 
 try:
     adapter.start()
-    #adapter.scan()
-    device = adapter.connect('A8:61:0A:21:66:19')
 
-    device.subscribe("19b10000-e8f2-537e-4f6c-d104768a1214",
+    # al parecer scan no funciona por requerir permisos especiales o algo así.
+    # Al cabo que ni lo necesitabamos >:(
+    # mejor usar hci
+    # adapter.scan() 
+
+    device = adapter.connect('02:68:70:10:29:B6')
+
+    """
+    00002a00-0000-1000-8000-00805f9b34fb
+    handle: 0x000d, char properties: 0x02, char value handle: 0x000e, uuid: 00002a01-0000-1000-8000-00805f9b34fb
+    handle: 0x0010, char properties: 0x20, char value handle: 0x0011, uuid: 00002a05-0000-1000-8000-00805f9b34fb
+    handle: 0x0014, char properties: 0x32, char value handle: 0x0015, uuid: 00002a6e-0000-1000-8000-00805f9b34fb
+    """
+
+    # dirección hexadecimal de caracteristica
+    device.subscribe("00002a6e-0000-1000-8000-00805f9b34fb",
                      callback=handle_data)
 
     # The subscription runs on a background thread. You must stop this main
@@ -69,6 +49,7 @@ try:
     # solution that won't eat up unnecessary CPU, but there are many other
     # ways to handle this in more complicated program. Multi-threaded
     # programming is outside the scope of this README.
+
     while True:
         time.sleep(10)
 finally:
