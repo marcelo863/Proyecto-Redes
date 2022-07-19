@@ -57,12 +57,16 @@ class BLEPerson:
         elif event == _IRQ_GATTS_INDICATE_DONE:
             conn_handle, value_handle, status = data
 
-    def set_person(self, data, prob, time, notify=False, indicate=False):
-        # Data is sint16 in degrees Celsius with a resolution of 0.01 degrees Celsius.
+
+    def set_person(self, data, is_prob, notify=False, indicate=False):
         # Write the local value, ready for a central to read.
+
+        if is_prob:
+            print("prob:", int(data))
+            data = int(data)
+
         self._ble.gatts_write(self._handle, struct.pack("<h", data))
-        self._ble.gatts_write(self._handle, struct.pack("<h", prob))
-        self._ble.gatts_write(self._handle, struct.pack("<s", time))
+
         if notify or indicate:
             for conn_handle in self._connections:
                 if notify:
@@ -119,14 +123,16 @@ def main():
 
             # si es persona o no
             max_label = labels[obj.output().index(max(obj.output()))]
-            
-            tiempo = time.localtime().strftime("%d %H %M %S")
-            
-            if max_label == "person":
-                person.set_person(1, obj.output()[1], tiempo, notify=True, indicate=False)
+            prob_no_person, prob_person = obj.output()
+
+            if prob_person > 0.6:
                 print("Persona detectada!")
+
+                #person.set_person(2, False, notify=True, indicate=False)
+                person.set_person(100, True, notify=True, indicate=False)
             else:
-                person.set_person(0, obj.output()[0], tiempo, notify=False, indicate=False)
+                #person.set_person(0, False, notify=False, indicate=False)
+                person.set_person(prob_no_person, True, notify=False, indicate=False)
 
             img.draw_rectangle(obj.rect())
             img.draw_string(obj.x()+3, obj.y()-1, max_label, mono_space = False)

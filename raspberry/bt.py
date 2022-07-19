@@ -2,62 +2,71 @@
 # fuente: https://github.com/peplin/pygatt
 
 import os
-
-# Encender bluetooth
-
-os.system("sudo rfkill unblock bluetooth")
-
+import signal
 import pygatt
+import struct   
 from binascii import hexlify
 import time
 # pip install mysql-connector-python
 # import mysql.connector
 
+# Encender bluetooth
+
+os.system("sudo rfkill unblock bluetooth")
+
+
 adapter = pygatt.GATTToolBackend()
 #adapter = pygatt.backends.BGAPIBackend()
 
-"""
 # manejar ctrl + C
 def handle_break():
-    
     conn.close()
+    exit(1)
 
 def connectDB():
     host_name = "localhost (?)"
-    conn = connector.connect("redes", "123", host_name, "redesDB")
+    conn = mysql.connector.connect("redes", "123", host_name, "redesDB")
     return conn
 
-def insertDB(conn, data):
+def insertDB(conn, data, detect_time):
+    detect, detect_prob = data
     conn.execute('''
           INSERT INTO registro (hora, reconocimiento, prob_reconocimiento)
             VALUES
-            (1,'Computer'),
-            (2,'Printer'),
+            (%s,%d,%f),
           ''', [detect_time, detect, detect_prob])
 
     # imprimir resultado de query
     print(conn.fetchall())
-"""
+    conn.commit()
+
 
 def handle_data(handle, value):
     """
     handle -- integer, characteristic read handle the data was received on
     value -- bytearray, the data returned in the notification
     """
-    print("Received data: %s" % hexlify(value))
+    print("Received data:", struct.unpack("<h", value)[0])
     
+    now = time.strftime('%Y-%m-%d %H:%M:%S')
+    print("tiempo:", now)
+
     # trabajar con value :)
 
     # enviar raw value o hexlify?
-    # insertDB(conn, hexlify(value))
+    insertDB(conn, hexlify(value), now)
+
+# señal para manejar ctrl + C
+signal.signal(signal.SIGINT, handler)
 
 try:
-    """
+
     # conectar a mysql en docker container
     conn = connectDB()
     if not conn.is_connected():
         print("Error en conexión de base de datos")
-    """
+        exit(1)
+    c = conn.cursor()
 
     # adaptador bluetooth
     adapter.start()

@@ -11,6 +11,17 @@ sudo apt update
 sudo apt upgrade
 sudo apt install git
 ```
+## Configuración BD
+
+Instalar mysql:
+```
+sudo apt install mariadb-server
+```
+Crear usuario (la contraseña predeterminada de root en mysql es vacía):
+```
+sh dbuser.sh
+```
+
 
 ## Conexión BLE
 En primer lugar, buscar los dispositivos cercanos mediante BLE:  
