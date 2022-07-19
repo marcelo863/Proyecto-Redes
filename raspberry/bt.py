@@ -4,11 +4,11 @@
 import os
 import signal
 import pygatt
-import struct   
+import struct
 from binascii import hexlify
 import time
 # pip install mysql-connector-python
-# import mysql.connector
+import mysql.connector
 
 # Encender bluetooth
 
@@ -24,59 +24,71 @@ def handle_break():
     exit(1)
 
 def connectDB():
-    host_name = "localhost (?)"
+    host_name = "localhost"
     conn = mysql.connector.connect("redes", "123", host_name, "redesDB")
     return conn
 
-def insertDB(conn, data, detect_time):
-    detect, detect_prob = data
-    conn.execute('''
+def insertDB(cursor, detect_time, detect, detect_prob):
+    cursor.execute('''
           INSERT INTO registro (hora, reconocimiento, prob_reconocimiento)
             VALUES
             (%s,%d,%f),
           ''', [detect_time, detect, detect_prob])
 
     # imprimir resultado de query
-    print(conn.fetchall())
-    conn.commit()
+    print(cursor.fetchall())
+    cursor.commit()
 
 
-def handle_data(handle, value):
+def handle_data(handle, data):
     """
     handle -- integer, characteristic read handle the data was received on
     value -- bytearray, the data returned in the notification
     """
-    print("Received data:", struct.unpack("<h", value)[0])
-    
     now = time.strftime('%Y-%m-%d %H:%M:%S')
     print("tiempo:", now)
 
-    # trabajar con value :)
+    data = struct.unpack("<h", data)[0]
+    print("Datos recibidos:", data)
 
-    # enviar raw value o hexlify?
-    insertDB(conn, hexlify(value), now)
+    is_person = 0
+    if data > 1000:
+        print("Persona detectada")
+        is_person = 1
+        data -= 10000
 
-# señal para manejar ctrl + C
-signal.signal(signal.SIGINT, handler)
+    # Extraer probabilidad
+    prob = data/1000.0
+
+    if is_person == 1:
+        print("Con probabilidad", prob)
+
+    # Ingresar datos en BD
+    insertDB(c, now, is_person, prob)
+
+# signal para manejar ctrl + c
+signal.signal(signal.SIGINT, handle_break)
 
 try:
 
     # conectar a mysql en docker container
     conn = connectDB()
     if not conn.is_connected():
-        print("Error en conexión de base de datos")
+        print("Error en conexion de base de datos")
         exit(1)
+    print("Base de datos conectada")
     c = conn.cursor()
 
     # adaptador bluetooth
     adapter.start()
 
-    # al parecer scan no funciona por requerir permisos especiales o algo así.
+    # al parecer scan no funciona por requerir permisos especiales o algo asi.
     # Al cabo que ni lo necesitabamos >:(
     # mejor usar hci
     # adapter.scan() 
 
     device = adapter.connect('02:68:70:10:29:B6')
+    print("Dispositivo BLE conectado")
 
     """
     00002a00-0000-1000-8000-00805f9b34fb
@@ -85,9 +97,10 @@ try:
     handle: 0x0014, char properties: 0x32, char value handle: 0x0015, uuid: 00002a6e-0000-1000-8000-00805f9b34fb
     """
 
-    # dirección hexadecimal de caracteristica
+    # direccion hexadecimal de caracteristica
     device.subscribe("00002a6e-0000-1000-8000-00805f9b34fb",
                      callback=handle_data)
+    print("Caracteristica suscrita con exito")
 
     # The subscription runs on a background thread. You must stop this main
     # thread from exiting, otherwise you will not receive any messages, and
