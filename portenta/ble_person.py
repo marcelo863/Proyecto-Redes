@@ -58,12 +58,17 @@ class BLEPerson:
             conn_handle, value_handle, status = data
 
 
-    def set_person(self, data, is_prob, notify=False, indicate=False):
+    def set_person(self, is_person, prob, notify=False, indicate=False):
         # Write the local value, ready for a central to read.
 
-        if is_prob:
-            print("prob:", int(data))
-            data = int(data)
+        print("prob:", int(prob*1000))
+        prob = int(prob*1000)
+
+        # codificación persona
+        if is_person:
+            data = prob + 10000
+        else:
+            data = prob
 
         self._ble.gatts_write(self._handle, struct.pack("<h", data))
 
@@ -128,11 +133,11 @@ def main():
             if prob_person > 0.6:
                 print("Persona detectada!")
 
-                #person.set_person(2, False, notify=True, indicate=False)
-                person.set_person(100, True, notify=True, indicate=False)
+                # person.set_person(1, False, notify=True, indicate=False)
+                person.set_person(1, prob_person, notify=True, indicate=False)
             else:
-                #person.set_person(0, False, notify=False, indicate=False)
-                person.set_person(prob_no_person, True, notify=False, indicate=False)
+                # person.set_person(0, False, notify=True, indicate=False)
+                person.set_person(0, prob_no_person, notify=True, indicate=False)
 
             img.draw_rectangle(obj.rect())
             img.draw_string(obj.x()+3, obj.y()-1, max_label, mono_space = False)

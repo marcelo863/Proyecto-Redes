@@ -81,7 +81,7 @@ signal.signal(signal.SIGINT, handle_break)
 
 try:
 
-    # conectar a mysql en docker container
+    # conectar a BD
     conn = connectDB()
     if not conn.is_connected():
         print("Error en conexion de base de datos")
@@ -100,7 +100,7 @@ try:
 
     #handle: 0x0014, char properties: 0x32, char value handle: 0x0015, uuid: 00002a6e-0000-1000-8000-00805f9b34fb
 
-    # direccion hexadecimal de caracteristica
+    # direccion hexadecimal de caracteristica (se conserva, porque está definida en portenta/ble_person.py)
     device.subscribe("00002a6e-0000-1000-8000-00805f9b34fb",
                      callback=handle_data)
 
