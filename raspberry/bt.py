@@ -1,43 +1,53 @@
 #!/usr/bin/python3
-# fuente: https://github.com/peplin/pygatt
 
 import os
 import signal
 import pygatt
 import struct
-from binascii import hexlify
+#from binascii import hexlify
 import time
-# pip install mysql-connector-python
 import mysql.connector
+
+
+# Direccion MAC de Portenta
+MAC_ADDRESS = '02:68:70:10:29:B6'
+
+configDB = {
+    'user': 'redes',
+    'password': '123',
+    'host': 'localhost',
+    'database':'redesDB'
+}
 
 # Encender bluetooth
 
 os.system("sudo rfkill unblock bluetooth")
 
-
 adapter = pygatt.GATTToolBackend()
 #adapter = pygatt.backends.BGAPIBackend()
 
 # manejar ctrl + C
-def handle_break():
+def handle_break(sig, frame):
+    print("")
+    #adapter.stop()
+    print("Conexión BLE terminada")
     conn.close()
+    c.close()
+    print("Conexión a base de datos terminada")
     exit(1)
 
 def connectDB():
-    host_name = "localhost"
-    conn = mysql.connector.connect("redes", "123", host_name, "redesDB")
+    conn = mysql.connector.connect(**configDB)
     return conn
 
-def insertDB(cursor, detect_time, detect, detect_prob):
+def insertDB(conn,cursor, detect_time, detect, detect_prob):
     cursor.execute('''
           INSERT INTO registro (hora, reconocimiento, prob_reconocimiento)
-            VALUES
-            (%s,%d,%f),
-          ''', [detect_time, detect, detect_prob])
+          VALUES (%s,%s,%s)
+          ''',(detect_time, detect, detect_prob))
 
-    # imprimir resultado de query
-    print(cursor.fetchall())
-    cursor.commit()
+    conn.commit()
+    print("")
 
 
 def handle_data(handle, data):
@@ -46,10 +56,10 @@ def handle_data(handle, data):
     value -- bytearray, the data returned in the notification
     """
     now = time.strftime('%Y-%m-%d %H:%M:%S')
-    print("tiempo:", now)
+    print("Hora:", now)
 
     data = struct.unpack("<h", data)[0]
-    print("Datos recibidos:", data)
+    #print("Datos recibidos:", data)
 
     is_person = 0
     if data > 1000:
@@ -64,7 +74,7 @@ def handle_data(handle, data):
         print("Con probabilidad", prob)
 
     # Ingresar datos en BD
-    insertDB(c, now, is_person, prob)
+    insertDB(conn, c, now, is_person, prob)
 
 # signal para manejar ctrl + c
 signal.signal(signal.SIGINT, handle_break)
@@ -82,25 +92,17 @@ try:
     # adaptador bluetooth
     adapter.start()
 
-    # al parecer scan no funciona por requerir permisos especiales o algo asi.
-    # Al cabo que ni lo necesitabamos >:(
-    # mejor usar hci
-    # adapter.scan() 
+    #adapter.scan() no sirve por temas de permisos, pero se puede usar hci0
 
-    device = adapter.connect('02:68:70:10:29:B6')
+    device = adapter.connect(MAC_ADDRESS, timeout=20.0)
     print("Dispositivo BLE conectado")
 
-    """
-    00002a00-0000-1000-8000-00805f9b34fb
-    handle: 0x000d, char properties: 0x02, char value handle: 0x000e, uuid: 00002a01-0000-1000-8000-00805f9b34fb
-    handle: 0x0010, char properties: 0x20, char value handle: 0x0011, uuid: 00002a05-0000-1000-8000-00805f9b34fb
-    handle: 0x0014, char properties: 0x32, char value handle: 0x0015, uuid: 00002a6e-0000-1000-8000-00805f9b34fb
-    """
+
+    #handle: 0x0014, char properties: 0x32, char value handle: 0x0015, uuid: 00002a6e-0000-1000-8000-00805f9b34fb
 
     # direccion hexadecimal de caracteristica
     device.subscribe("00002a6e-0000-1000-8000-00805f9b34fb",
                      callback=handle_data)
-    print("Caracteristica suscrita con exito")
 
     # The subscription runs on a background thread. You must stop this main
     # thread from exiting, otherwise you will not receive any messages, and
@@ -113,4 +115,3 @@ try:
         time.sleep(10)
 finally:
     adapter.stop()
-

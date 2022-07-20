@@ -17,9 +17,9 @@ Instalar mysql:
 ```
 sudo apt install mariadb-server
 ```
-Crear usuario (la contraseña predeterminada de root en mysql es vacía):
+Crear usuario (la contraseña predeterminada de root en mysql es vacía, pero puede que sea "root" en este caso):
 ```
-sh dbuser.sh
+sudo bash dbuser.sh
 ```
 
 

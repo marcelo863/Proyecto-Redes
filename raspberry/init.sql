@@ -1,7 +1,7 @@
 CREATE DATABASE IF NOT EXISTS redesDB;
 USE redesDB;
 CREATE TABLE IF NOT EXISTS registro
-    (id INTEGER PRIMARY KEY,
-    hora DATETIME,
-    reconocimiento INT,
-    prob_reconocimiento DECIMAL);
+    (id INTEGER PRIMARY KEY NOT NULL AUTO_INCREMENT,
+    hora DATETIME NOT NULL,
+    reconocimiento INT NOT NULL,
+    prob_reconocimiento DECIMAL(10,3) NOT NULL);
