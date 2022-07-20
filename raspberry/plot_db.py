@@ -6,9 +6,10 @@ python3 -m pip install Cython Pillow
 python3 -m pip install matplotlib
 """
 
+import matplotlib
 from datetime import datetime
 # import pytz
-import matplotlib as plt
+import matplotlib.pyplot as plt
 import mysql.connector
 
 # Direccion MAC de Portenta
@@ -86,4 +87,6 @@ ax.legend(handles=[f_non, f_pers], loc="best")
 
 plt.xticks(rotation = 20)
 # plt.margins()
-plt.show()
+# plt.show()
+
+plt.savefig('prob_person.png')
