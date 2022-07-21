@@ -56,27 +56,15 @@ for i in c:
         hora_non.append(i[0])
         prob_non.append(i[2])
 
-
-print("horas_pers:", hora_pers)
-print("probs_pers:", prob_pers)
-print("horas_non:", hora_non)
-print("probs_non:", prob_non)
-
-
-# hora_pers = ["2022-07-20 05:23:54", "2022-07-20 05:23:58", "2022-07-20 05:24:09"]
-# prob_pers = [0.945, 0.944, 0.957]
-# hora_non = ["2022-07-20 05:24:21", "2022-07-20 07:22:24"]
-# prob_non = [0.542, 0.453]
-
 fig = plt.figure()
 ax = fig.add_subplot(111)
-f_non = ax.bar(hora_non, prob_non, width=0.1, label="f_non")
-f_pers = ax.bar(hora_pers, prob_pers, width=0.1, label="f_pers")
 
-# test = datetime.strptime(datetime.now().strftime('%Y-%m-%d %H:%M'), '%Y-%m-%d %H:%M') 
-# ax.xaxis.axis_date(pytz.timezone('US/Eastern').localize(test))
+max_plot = max(hora_pers + hora_non)
+min_plot = min(hora_pers + hora_non)
+bar_width = 1E-2 * (max_plot - min_plot)
 
-# plt.gca().xaxis.axis_date()
+f_non = ax.bar(hora_non, prob_non, width=bar_width, label="No persona")
+f_pers = ax.bar(hora_pers, prob_pers, width=bar_width, label="Persona")
 
 ax.set_xlabel("Hora")
 ax.set_ylabel("Probabilidad de reconocimiento")
@@ -85,7 +73,7 @@ ax.set_title("Reconocimiento de personas")
 ax.legend(handles=[f_non, f_pers], loc="best")
 
 plt.xticks(rotation = 20)
-# plt.margins()
-# plt.show()
-
 plt.savefig('prob_person.png')
+
+c.close()
+conn.close()
