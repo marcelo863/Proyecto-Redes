@@ -70,14 +70,13 @@ print("probs_non:", prob_non)
 
 fig = plt.figure()
 ax = fig.add_subplot(111)
-f_non, = ax.plot(hora_non, prob_non, label="f_non")
-f_pers, = ax.plot(hora_pers, prob_pers, label="f_pers")
+f_non = ax.bar(hora_non, prob_non, width=0.1, label="f_non")
+f_pers = ax.bar(hora_pers, prob_pers, width=0.1, label="f_pers")
 
 # test = datetime.strptime(datetime.now().strftime('%Y-%m-%d %H:%M'), '%Y-%m-%d %H:%M') 
 # ax.xaxis.axis_date(pytz.timezone('US/Eastern').localize(test))
 
 # plt.gca().xaxis.axis_date()
-
 
 ax.set_xlabel("Hora")
 ax.set_ylabel("Probabilidad de reconocimiento")

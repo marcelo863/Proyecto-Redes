@@ -61,7 +61,6 @@ class BLEPerson:
     def set_person(self, is_person, prob, notify=False, indicate=False):
         # Write the local value, ready for a central to read.
 
-        print("prob:", int(prob*1000))
         prob = int(prob*1000)
 
         # codificación persona
@@ -121,7 +120,7 @@ def main():
         # default settings just do one detection... change them to search the image...
         for obj in net.classify(img, min_scale=1.0, scale_mul=0.5, x_overlap=0.0, y_overlap=0.0):
 
-            print("**********\nDetections at [x=%d,y=%d,w=%d,h=%d]" % obj.rect())
+            print("**********\nDetalles de reconocimiento")
 
             for i in range(len(obj.output())):
                 print("%s = %f" % (labels[i], obj.output()[i]))
